@@ -429,7 +429,7 @@ def main():
         print('['+num2fixstr(epoch+1, 3)+'/'+num2fixstr(num_epochs, 3)+'] ' + st + ' | '+sv)
 
 
-    torch.save(model.state_dict(), '/content/drive/MyDrive/Segmentation/Panel_Segmentation.pt')
+    torch.save(model.state_dict(), 'Panel_Segmentation.pt')
 
 
     plt.plot(train_loss_hist, label='Train Loss')
