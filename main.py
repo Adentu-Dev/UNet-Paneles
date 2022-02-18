@@ -349,9 +349,6 @@ batch_size  = 1
 # learning rate
 lr          = 1e-4
 
-# Workers for data loader
-num_workers = 2
-
 # Resize parameters of layers
 nl, nc      = 1024, 1024
 
@@ -401,14 +398,12 @@ print('number of test images: ', qx.shape[0], end='\n\n')
 
 train_dataset    = UnetDataset(ax, ay)
 train_dataloader = DataLoader(dataset=train_dataset,
-                              batch_size=batch_size,
-                              num_workers=num_workers)
+                              batch_size=batch_size)
 
 
 val_dataset      = UnetDataset(vx, vy)
 val_dataloader   = DataLoader(dataset=val_dataset,
-                              batch_size=batch_size,
-                              num_workers=num_workers)
+                              batch_size=batch_size)
 
 
 '''
