@@ -18,6 +18,7 @@ import os
                 UNet
 '''
 
+
 class Unet(nn.Module):
 
     def __init__(self, n, batch_size=50):
@@ -165,8 +166,9 @@ class UnetDataset(Dataset):
 
 
 '''
-                Funciones
+                Methods
 '''
+
 
 def train_epoch(model, iterator, optimizer, criterion, device):
     epoch_loss = 0
@@ -190,14 +192,13 @@ def train_epoch(model, iterator, optimizer, criterion, device):
 
 
 def eval_epoch(model, iterator, criterion, device):
-
-    # initialize every epoch
+    #initialize every epoch
     epoch_loss = 0
 
-    # deactivating dropout layers
+    #deactivating dropout layers
     model.eval()
 
-    # deactivates autograd
+    #deactivates autograd
     with torch.no_grad():
         for batch in iterator:
 
@@ -205,13 +206,13 @@ def eval_epoch(model, iterator, criterion, device):
             img = img.to(device)
             seg = seg.to(device)
 
-            # convert to 1d tensor
+            #convert to 1d tensor
             predictions = model(img)
 
-            # compute loss
+            #compute loss
             loss = criterion(predictions, seg)
 
-            # keep track of loss
+            #keep track of loss
             epoch_loss += loss.item()
 
     return epoch_loss / len(iterator)
@@ -256,11 +257,11 @@ def load_images(fpath,
 
         i = i1 + img_indx
 
-        img_path = f'{fpath}/paneles/{img_names[i]}'
+        img_path = f'{fpath}color/{img_names[i]}'
         img = cv2.imread(img_path, 0)
         img = cv2.resize(img, (nl, nc))
 
-        mask_path = f'{fpath}/masks/{img_names[i]}'
+        mask_path = f'{fpath}seg/{img_names[i]}'
         mask_path = mask_path[:-3] + 'png'
         mask = cv2.imread(mask_path, 0)
         mask = cv2.resize(mask, (nl, nc))
@@ -269,6 +270,7 @@ def load_images(fpath,
 
         imgs_data[indx] = img
         mask_data[indx] = mask
+
 
         if transformations:
             for trans_indx, transformation in enumerate(transformations):
@@ -300,6 +302,7 @@ def load_images(fpath,
                     imgs_data[indx+trans_indx+1] = transformation(torch.from_numpy(img))
                     mask_data[indx+trans_indx+1] = transformation(torch.from_numpy(mask))
 
+
         if echo == 'on':
             print('\nindx', indx)
             print('processing files ' + img_path)
@@ -314,28 +317,19 @@ def load_images(fpath,
 
     return imgs_data_norm, mask_data_norm
 
-
 def regionview(img, mask):
     img_color = np.dstack((img, img, img))
     img_color = label2rgb(mask, image=img_color, bg_label=0)
     return img_color
 
-
 def dirfiles(img_path, img_ext):
     return fnmatch.filter(sorted(os.listdir(img_path)), img_ext)
 
 def num2fixstr(x,d):
-    # example num2fixstr(2,5) returns '00002'
-    # example num2fixstr(19,3) returns '019'
-    st = '%0*d' % (d,x)
-    return st
-
-def get_data_loader (img_x, img_y, transform=None, batch_size=10, num_workers=1):
-    dt = UnetDataset(img_x, img_y)
-    dl = DataLoader(dataset=dt, batch_size=batch_size, num_workers=num_workers)
-
-    return dl
-
+  # example num2fixstr(2,5) returns '00002'
+  # example num2fixstr(19,3) returns '019'
+  st = '%0*d' % (d,x)
+  return st
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -343,32 +337,34 @@ print('Device:', device)
 
 
 '''
-                Definiciones
+                Definitions
 '''
 
+# UNet size
 n           = 64 # size of the Unet
+
+# Training batch size
 batch_size  = 1
 
-nl, nc      = 1024, 1024
-# t           = torch.rand(batch_size, 1, n, n).to(device)
-t           = torch.rand(batch_size, 1, nl, nc).to(device)
+# learning rate
+lr          = 1e-4
+
+# Workers for data loader
 num_workers = 2
+
+# Resize parameters of layers
+nl, nc      = 1024, 1024
+
 model       = Unet(n).to(device)
+criterion   = nn.MSELoss().to(device)
+optimizer   = optim.Adam(model.parameters(), lr=lr)
 
-# print(t.shape)
-# print(model(t).shape)
-
-lr        = 1e-4 # learning rate
-
-criterion = nn.MSELoss().to(device)
-# criterion = MyRmseLoss(eps=1.1920929e-07).to(device)
-
-optimizer = optim.Adam(model.parameters(), lr=lr)
 
 
 '''
                 Training/Validation/Testing
 '''
+
 
 transformations = [
     trans.hflip,
@@ -379,30 +375,35 @@ transformations = [
 
 nl, nc = 1024, 1024
 
-train_path = 'PanelesRGB/Train'
-val_path = 'PanelesRGB/Val'
+fpath = 'PanelesRGB/'
 
-train_names = dirfiles('PanelesRGB/Train/paneles/', '*.jpg')
-val_names = dirfiles('PanelesRGB/Val/paneles/', '*.jpg')
+img_names = dirfiles(fpath + 'color/', '*.jpg')
 
 # Split: Train/Val/Testing
-# fpath, img_names, i1, i2, st, nl=32, nc=32, echo='off'
-ax, ay = load_images(train_path, train_names,
-                0, 34, 'train',
+ax, ay = load_images(fpath, img_names,
+                0, 30, 'train',
                 transformations,
                 nl=nl, nc=nc, echo='off')
 print('number of train images: ', ax.shape[0], end='\n\n')
 
-vx, vy = load_images(val_path, val_names,
-                0, 6, 'val',
+vx, vy = load_images(fpath, img_names,
+                30, 35, 'val',
                 transformations,
                 nl=nl, nc=nc, echo='off')
 print('number of val images: ', vx.shape[0], end='\n\n')
+
+qx, qy = load_images(fpath, img_names,
+                35, 40, 'test',
+                transformations,
+                nl=nl, nc=nc, echo='off')
+print('number of test images: ', qx.shape[0], end='\n\n')
+
 
 train_dataset    = UnetDataset(ax, ay)
 train_dataloader = DataLoader(dataset=train_dataset,
                               batch_size=batch_size,
                               num_workers=num_workers)
+
 
 val_dataset      = UnetDataset(vx, vy)
 val_dataloader   = DataLoader(dataset=val_dataset,
