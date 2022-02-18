@@ -331,106 +331,113 @@ def num2fixstr(x,d):
   st = '%0*d' % (d,x)
   return st
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-print('Device:', device)
+def main():
 
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-'''
-                Definitions
-'''
-
-# UNet size
-n           = 64 # size of the Unet
-
-# Training batch size
-batch_size  = 1
-
-# learning rate
-lr          = 1e-4
-
-# Resize parameters of layers
-nl, nc      = 1024, 1024
-
-model       = Unet(n).to(device)
-criterion   = nn.MSELoss().to(device)
-optimizer   = optim.Adam(model.parameters(), lr=lr)
+    print('Device:', device)
 
 
+    '''
+                    Definitions
+    '''
 
-'''
-                Training/Validation/Testing
-'''
+    # UNet size
+    n           = 64 # size of the Unet
 
+    # Training batch size
+    batch_size  = 1
 
-transformations = [
-    trans.hflip,
-    trans.vflip,
-    random_noise,
-    trans.rotate
-][:-1]
+    # learning rate
+    lr          = 1e-4
 
-nl, nc = 1024, 1024
+    # Resize parameters of layers
+    nl, nc      = 1024, 1024
 
-fpath = 'PanelesRGB/'
-
-img_names = dirfiles(fpath + 'color/', '*.jpg')
-
-# Split: Train/Val/Testing
-ax, ay = load_images(fpath, img_names,
-                0, 30, 'train',
-                transformations,
-                nl=nl, nc=nc, echo='off')
-print('number of train images: ', ax.shape[0], end='\n\n')
-
-vx, vy = load_images(fpath, img_names,
-                30, 35, 'val',
-                transformations,
-                nl=nl, nc=nc, echo='off')
-print('number of val images: ', vx.shape[0], end='\n\n')
-
-qx, qy = load_images(fpath, img_names,
-                35, 40, 'test',
-                transformations,
-                nl=nl, nc=nc, echo='off')
-print('number of test images: ', qx.shape[0], end='\n\n')
+    model       = Unet(n).to(device)
+    criterion   = nn.MSELoss().to(device)
+    optimizer   = optim.Adam(model.parameters(), lr=lr)
 
 
-train_dataset    = UnetDataset(ax, ay)
-train_dataloader = DataLoader(dataset=train_dataset,
-                              batch_size=batch_size)
+
+    '''
+                    Training/Validation/Testing
+    '''
 
 
-val_dataset      = UnetDataset(vx, vy)
-val_dataloader   = DataLoader(dataset=val_dataset,
-                              batch_size=batch_size)
+    transformations = [
+        trans.hflip,
+        trans.vflip,
+        random_noise,
+        trans.rotate
+    ][:-1]
+
+    nl, nc = 1024, 1024
+
+    fpath = 'PanelesRGB/'
+
+    img_names = dirfiles(fpath + 'color/', '*.jpg')
+
+    # Split: Train/Val/Testing
+    ax, ay = load_images(fpath, img_names,
+                    0, 30, 'train',
+                    transformations,
+                    nl=nl, nc=nc, echo='off')
+    print('number of train images: ', ax.shape[0], end='\n\n')
+
+    vx, vy = load_images(fpath, img_names,
+                    30, 35, 'val',
+                    transformations,
+                    nl=nl, nc=nc, echo='off')
+    print('number of val images: ', vx.shape[0], end='\n\n')
+
+    qx, qy = load_images(fpath, img_names,
+                    35, 40, 'test',
+                    transformations,
+                    nl=nl, nc=nc, echo='off')
+    print('number of test images: ', qx.shape[0], end='\n\n')
 
 
-'''
-                Entrenamiento
-'''
-
-num_epochs      = 1
-
-train_loss_hist = []
-val_loss_hist   = []
-
-for epoch in range(num_epochs):
-    train_loss = train_epoch(model, train_dataloader, optimizer, criterion, device)
-    train_loss_hist.append(train_loss)
-
-    st = f'Training Loss: {train_loss:.4f}'
-    val_loss = eval_epoch(model, val_dataloader, criterion, device)
-    val_loss_hist.append(val_loss)
-    sv = f'Validation Loss: {val_loss:.4f}'
-    print('['+num2fixstr(epoch+1, 3)+'/'+num2fixstr(num_epochs, 3)+'] ' + st + ' | '+sv)
+    train_dataset    = UnetDataset(ax, ay)
+    train_dataloader = DataLoader(dataset=train_dataset,
+                                  batch_size=batch_size)
 
 
-torch.save(model.state_dict(), '/content/drive/MyDrive/Segmentation/Panel_Segmentation.pt')
+    val_dataset      = UnetDataset(vx, vy)
+    val_dataloader   = DataLoader(dataset=val_dataset,
+                                  batch_size=batch_size)
 
 
-plt.plot(train_loss_hist, label='Train Loss')
-plt.plot(val_loss_hist, label=' Val Loss')
-plt.title('Loss vs. Epochs')
-plt.legend()
-plt.show()
+    '''
+                    Entrenamiento
+    '''
+
+    num_epochs      = 1
+
+    train_loss_hist = []
+    val_loss_hist   = []
+
+    for epoch in range(num_epochs):
+        train_loss = train_epoch(model, train_dataloader, optimizer, criterion, device)
+        train_loss_hist.append(train_loss)
+
+        st = f'Training Loss: {train_loss:.4f}'
+        val_loss = eval_epoch(model, val_dataloader, criterion, device)
+        val_loss_hist.append(val_loss)
+        sv = f'Validation Loss: {val_loss:.4f}'
+        print('['+num2fixstr(epoch+1, 3)+'/'+num2fixstr(num_epochs, 3)+'] ' + st + ' | '+sv)
+
+
+    torch.save(model.state_dict(), '/content/drive/MyDrive/Segmentation/Panel_Segmentation.pt')
+
+
+    plt.plot(train_loss_hist, label='Train Loss')
+    plt.plot(val_loss_hist, label=' Val Loss')
+    plt.title('Loss vs. Epochs')
+    plt.legend()
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()
