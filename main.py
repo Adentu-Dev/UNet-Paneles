@@ -412,12 +412,19 @@ def main():
                     Entrenamiento
     '''
 
-    num_epochs      = 10
+    num_epochs      = 30
 
     train_loss_hist = []
     val_loss_hist   = []
 
     for epoch in range(num_epochs):
+
+        if epoch % 5 == 0:
+            lr /= 10
+            print('Actualizando lr: ', lr)
+            optimizer = optim.Adam(model.parameters(), lr=lr)
+
+
         train_loss = train_epoch(model, train_dataloader, optimizer, criterion, device)
         train_loss_hist.append(train_loss)
 
