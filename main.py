@@ -380,19 +380,19 @@ def main():
 
     # Split: Train/Val/Testing
     ax, ay = load_images(fpath, img_names,
-                    0, 30, 'train',
+                    0, 4, 'train',
                     transformations,
                     nl=nl, nc=nc, echo='off')
     print('number of train images: ', ax.shape[0], end='\n\n')
 
     vx, vy = load_images(fpath, img_names,
-                    30, 35, 'val',
+                    4, 6, 'val',
                     transformations,
                     nl=nl, nc=nc, echo='off')
     print('number of val images: ', vx.shape[0], end='\n\n')
 
     qx, qy = load_images(fpath, img_names,
-                    35, 40, 'test',
+                    6, 7, 'test',
                     transformations,
                     nl=nl, nc=nc, echo='off')
     print('number of test images: ', qx.shape[0], end='\n\n')
@@ -435,7 +435,7 @@ def main():
         print('['+num2fixstr(epoch+1, 3)+'/'+num2fixstr(num_epochs, 3)+'] ' + st + ' | '+sv)
 
 
-    torch.save(model.state_dict(), 'Tracker_Segmentation.pt')
+    torch.save(model.state_dict(), 'Panel_Segmentation.pt')
 
 
     plt.plot(train_loss_hist, label='Train Loss')
