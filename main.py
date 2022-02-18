@@ -374,8 +374,6 @@ def main():
         trans.rotate
     ][:-1]
 
-    nl, nc = 1024, 1024
-
     fpath = 'PanelesRGB/'
 
     img_names = dirfiles(fpath + 'color/', '*.jpg')
@@ -414,7 +412,7 @@ def main():
                     Entrenamiento
     '''
 
-    num_epochs      = 1
+    num_epochs      = 10
 
     train_loss_hist = []
     val_loss_hist   = []
