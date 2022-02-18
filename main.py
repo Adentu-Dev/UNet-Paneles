@@ -353,7 +353,8 @@ def main():
     lr          = 1e-4
 
     # Resize parameters of layers
-    nl, nc      = 1024, 1024
+    # nl, nc      = 1024, 1024
+    nl, nc      = 512, 512
 
     model       = Unet(n).to(device)
     criterion   = nn.MSELoss().to(device)
@@ -429,7 +430,7 @@ def main():
         print('['+num2fixstr(epoch+1, 3)+'/'+num2fixstr(num_epochs, 3)+'] ' + st + ' | '+sv)
 
 
-    torch.save(model.state_dict(), 'Panel_Segmentation.pt')
+    torch.save(model.state_dict(), 'Tracker_Segmentation.pt')
 
 
     plt.plot(train_loss_hist, label='Train Loss')
