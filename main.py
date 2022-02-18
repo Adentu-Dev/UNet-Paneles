@@ -419,8 +419,8 @@ def main():
 
     for epoch in range(num_epochs):
 
-        if epoch % 5 == 0:
-            lr /= 10
+        if epoch % 10 == 0:
+            lr -= 2*1e-5
             print('Actualizando lr: ', lr)
             optimizer = optim.Adam(model.parameters(), lr=lr)
 
